@@ -31,25 +31,23 @@ def log(s):
 
 
 def file_delete(path, name):
-    if os.path.isdir(path):
-        for sub_file in os.listdir(path):
-            sub_path = os.path.join(path, sub_file)
-            if os.path.isdir(sub_path):
-                file_delete(sub_path, name)
-            else:
-                suffix = sub_path.split(".")[-1]
-                if suffix == name:
-                    log("remove: " + sub_path)
-                    os.remove(sub_path)
+    for sub_file in os.listdir(path):
+        sub_path = os.path.join(path, sub_file)
+        if os.path.isdir(sub_path):
+            file_delete(sub_path, name)
+        else:
+            suffix = sub_path.split(".")[-1]
+            if suffix == name:
+                log("remove: " + sub_path)
+                os.remove(sub_path)
 
 
 def file_traverse(path, index=0):
     index += 1
-    if os.path.isdir(path):
-        for sub_file in os.listdir(path):
-            log(index * " * " + sub_file)
-            sub_path = os.path.join(path, sub_file)
-            file_traverse(sub_path, index)
+    for sub_file in os.listdir(path):
+        log(index * " * " + sub_file)
+        sub_path = os.path.join(path, sub_file)
+        file_traverse(sub_path, index)
 
 
 def file_rename(path, name):
@@ -115,6 +113,30 @@ def file_collection(path, new_dir):
                 print("files move error: ", e)
 
 
+def size_filter(path, size, des):
+    des_path = os.path.join(path, des)
+    if not os.path.exists(des_path):
+        os.mkdir(des_path)
+
+    n = 0
+    for root, dirs, files in os.walk(path):
+        # n += 1
+        # print("n == " + str(n) + " root: " + "--" * 50)
+        # print("root: " + root)
+        # print("dirs: " + "--" * 50)
+        # print(dirs)
+        # print("files: " + "--" * 50)
+        # print(files)
+
+        if len(files) > 0:
+            for file in files:
+                file_path = os.path.join(root, file)
+                file_size = os.path.getsize(file_path)  / (1024 * 1024)
+                print(file + ", size: " + str(round(file_size, 2)) + "M")
+
+                if file_size > size:
+                    shutil.move(file_path, des_path)
+
 if __name__ == '__main__':
 
     print(sys.argv)
@@ -147,6 +169,7 @@ if __name__ == '__main__':
     elif len(sys.argv) == 5 and sys.argv[1] == "sizeFilter":
         size = int(sys.argv[3])
         des = sys.argv[4]
+        size_filter(path, size, des)
 
     else:
         log(ERROR_STRING)
