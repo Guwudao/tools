@@ -4,12 +4,12 @@ import shutil
 import argparse
 
 TIPS_STRING = """
--> collect {path} {dir_name} 把当前路径下所有一级文件夹内的文件移动到新建文件夹内
--> remove {path} {suffix} 删除当前路径下指定后缀名的文件
--> list {path} 遍历当前路径下的文件夹
--> rename {path} {name} 顺序重命名路径下所有文件
--> listRename {path} 批量把路径下，文件夹内的文件根据文件夹重命名
--> sizeFilter {path} size {destination} 把路径下大于指定大小的文件移到指定文件夹内
+-> c {path} {dir_name} 把当前路径下所有一级文件夹内的文件移动到新建文件夹内
+-> rm {path} {suffix} 删除当前路径下指定后缀名的文件
+-> l {path} 遍历当前路径下的文件夹
+-> rn {path} {name} 顺序重命名路径下所有文件
+-> lr {path} 批量把路径下，文件夹内的文件根据文件夹重命名
+-> sf {path} size {destination} 把路径下大于指定大小的文件移到指定文件夹内
 """
 
 ERROR_STRING = """
@@ -55,7 +55,9 @@ def file_rename(path, name):
 
     try:
         for index, file in enumerate(total_list):
-            new = name + str(index)
+            suffix = file.split(".")[-1]
+            new = name + str(index + 1) + "." + suffix
+            print(new)
             os.rename(os.path.join(path, file), os.path.join(path, new))
 
     except Exception as e:
@@ -72,7 +74,7 @@ def file_rename_follow_dir(path):
             if os.path.isdir(dir_path):
                 for index, file in enumerate(os.listdir(dir_path)):
                     suffix = os.path.splitext(file)[-1]
-                    new_name = dir + "_" + str(index) + suffix
+                    new_name = dir + "_" + str(index+1) + suffix
                     src = os.path.join(dir_path, file)
                     dst = os.path.join(dir_path, new_name)
                     log(src)
@@ -86,8 +88,9 @@ def file_rename_follow_dir(path):
 
 
 def file_collection(path, new_dir):
-    if not os.path.exists(path + "/" + new_dir):
-        os.mkdir(path + "/" + new_dir)
+    new_path = os.path.join(path, new_dir)
+    if not os.path.exists(new_path):
+        os.mkdir(new_path)
 
     total_list = os.listdir(path)
     # print("total_list: ", total_list)
@@ -118,16 +121,7 @@ def size_filter(path, size, des):
     if not os.path.exists(des_path):
         os.mkdir(des_path)
 
-    n = 0
     for root, dirs, files in os.walk(path):
-        # n += 1
-        # print("n == " + str(n) + " root: " + "--" * 50)
-        # print("root: " + root)
-        # print("dirs: " + "--" * 50)
-        # print(dirs)
-        # print("files: " + "--" * 50)
-        # print(files)
-
         if len(files) > 0:
             for file in files:
                 file_path = os.path.join(root, file)
@@ -138,7 +132,6 @@ def size_filter(path, size, des):
                     shutil.move(file_path, des_path)
 
 if __name__ == '__main__':
-
     print(sys.argv)
     print(len(sys.argv))
 
@@ -150,23 +143,24 @@ if __name__ == '__main__':
     if not os.path.exists(path):
         log("path is not exist!!")
 
-    if len(sys.argv) == 3 and sys.argv[1] == "list":
+    if len(sys.argv) == 3 and sys.argv[1] == "l":
         file_traverse(path)
 
-    elif len(sys.argv) == 3 and sys.argv[1] == "listRename":
+    elif len(sys.argv) == 3 and sys.argv[1] == "lr":
+        print("-" * 50)
         file_rename_follow_dir(path)
 
-    elif len(sys.argv) == 4 and sys.argv[1] == "collect":
+    elif len(sys.argv) == 4 and sys.argv[1] == "c":
         file_collection(path, sys.argv[3])
 
-    elif len(sys.argv) == 4 and sys.argv[1] == "rename":
+    elif len(sys.argv) == 4 and sys.argv[1] == "rn":
         file_rename(path, sys.argv[3])
 
-    elif len(sys.argv) == 4 and sys.argv[1] == "remove":
+    elif len(sys.argv) == 4 and sys.argv[1] == "rm":
         name = sys.argv[3]
         file_delete(path, name)
 
-    elif len(sys.argv) == 5 and sys.argv[1] == "sizeFilter":
+    elif len(sys.argv) == 5 and sys.argv[1] == "sf":
         size = int(sys.argv[3])
         des = sys.argv[4]
         size_filter(path, size, des)
